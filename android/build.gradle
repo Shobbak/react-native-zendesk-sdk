@@ -3,9 +3,7 @@ buildscript {
         repositories {
             google()
             jcenter()
-            maven { url 'https://zendesk.jfrog.io/zendesk/repo' }
         }
-
         dependencies {
             classpath 'com.android.tools.build:gradle:3.5.3'
         }
@@ -44,11 +42,11 @@ android {
 }
 
 repositories {
-    mavenLocal()
-    maven {
-        // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
-        url("$rootDir/../node_modules/react-native/android")
-        }
+//     mavenLocal()
+//     maven {
+//         // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
+//         url("$rootDir/../node_modules/react-native/android")
+//         }
     maven { url 'https://zendesk.jfrog.io/zendesk/repo' }
     google()
     jcenter()
