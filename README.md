@@ -5,7 +5,7 @@ React Native ZndeskSDK Wrapper
 ## Installation
 
 ```sh
-npm install react-native-zendesk-sdk
+yarn install react-native-zendesk-sdk
 ```
 
 ## Usage
@@ -15,7 +15,15 @@ import ZendeskSdk from "react-native-zendesk-sdk";
 
 // ...
 
-const result = await ZendeskSdk.multiply(3, 7);
+const result = await ZendeskSdk.initialize({
+        appId: '',
+        clientId: '',
+        zendeskUrl: 'https://shobbak.zendesk.com',
+        user: {
+          userId: user.id,
+          locale: 'ar',
+        },
+      });
 ```
 
 ## Contributing
