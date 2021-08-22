@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text, Button } from 'react-native';
 import ZendeskSdk from 'react-native-zendesk-sdk';
 
 export default function App() {
@@ -13,6 +13,12 @@ export default function App() {
   return (
     <View style={styles.container}>
       <Text>Result: {result}</Text>
+      <Button
+        title={'Open Help Center'}
+        onPress={() => {
+          // ZendeskSdk.showNativeHelpCenter();
+        }}
+      />
     </View>
   );
 }
