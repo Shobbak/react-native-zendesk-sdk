@@ -37,6 +37,10 @@ class ZendeskSdk: NSObject {
                 return
             }
             
+            let identity = Identity.createJwt(token: identifier)
+            
+            Zendesk.instance?.setIdentity(identity)
+            
             registerDevice(identifier: identifier, locale: deviceLocale)
 
         }
