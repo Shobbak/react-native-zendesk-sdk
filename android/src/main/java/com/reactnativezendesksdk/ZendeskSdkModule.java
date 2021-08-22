@@ -22,12 +22,28 @@ public class ZendeskSdkModule extends ReactContextBaseJavaModule {
         return NAME;
     }
 
-
-    // Example method
-    // See https://reactnative.dev/docs/native-modules-android
     @ReactMethod
-    public void multiply(int a, int b, Promise promise) {
-        promise.resolve(a * b);
+    public void initialize(ReadableMap options, Promise promise) {
+        String appId = options.getString("appId");
+        String clientId = options.getString("clientId");
+        String url = options.getString("url");
+        Context context = appContext;
+        Zendesk.INSTANCE.init(context, url, appId, clientId);
+        Support.INSTANCE.init(Zendesk.INSTANCE);
+    }
+
+    @ReactMethod
+    public void setUserIdentity(ReadableMap options) {
+//         if (options.hasKey("token")) {
+//           Identity identity = new JwtIdentity(options.getString("token"));
+//           Zendesk.INSTANCE.setIdentity(identity);
+//         } else {
+//           String name = options.getString("name");
+//           String email = options.getString("email");
+//           Identity identity = new AnonymousIdentity.Builder()
+//                   .withNameIdentifier(name).withEmailIdentifier(email).build();
+//           Zendesk.INSTANCE.setIdentity(identity);
+//         }
     }
 
     public static native int nativeMultiply(int a, int b);
