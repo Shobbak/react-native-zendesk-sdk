@@ -26,6 +26,7 @@ class ZendeskSdk: NSObject {
             
         }
         
+        
         Zendesk.initialize(appId: configOptions["appId"] as! String, clientId: configOptions["clientId"] as! String, zendeskUrl: configOptions["zendeskUrl"] as! String)
         
         Support.initialize(withZendesk: Zendesk.instance)
@@ -88,6 +89,7 @@ class ZendeskSdk: NSObject {
         
         Support.instance?.helpCenterLocaleOverride = "en-us"
         
+        
         if let locale = options?["locale"] as? String {
             Support.instance?.helpCenterLocaleOverride = locale
         }
@@ -111,6 +113,7 @@ class ZendeskSdk: NSObject {
 //            hcConfig.hideContactSupport = ticketDisabled
 //        }
         
+        CommonTheme.currentTheme.primaryColor = hexStringToUIColor(hex: "#10B981")
         
         DispatchQueue.main.async {
             var zendeskHelpCenter = HelpCenterUi.buildHelpCenterOverviewUi(withConfigs: [hcConfig])
@@ -169,21 +172,34 @@ class ZendeskSdk: NSObject {
         }
     }
     
-//    func presentHelpCenter() {
-//        let helpCenterUiConfig = HelpCenterUiConfiguration()
-//        helpCenterUiConfig.hideContactSupport = true
-//
-//        let articleUiConfig = ArticleUiConfiguration()
-//        articleUiConfig.hideContactSupport = true   // hide in article screen
-//
-//        let helpCenterViewController = HelpCenterUi.buildHelpCenterOverviewUi(withConfigs: [helpCenterUiConfig, articleUiConfig])
-//        self.navigationController?.pushViewController(helpCenterViewController, animated: true)
-//    }
-    
+
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler:
                    @escaping () -> Void) {
       let requestID = response.notification.request.content.userInfo["tid"]
     }
     
+    
+    func hexStringToUIColor (hex:String) -> UIColor {
+        var cString:String = hex.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+
+        if (cString.hasPrefix("#")) {
+            cString.remove(at: cString.startIndex)
+        }
+
+        if ((cString.count) != 6) {
+            return UIColor.gray
+        }
+
+        var rgbValue:UInt64 = 0
+        
+        Scanner(string: cString).scanHexInt64(&rgbValue)
+
+        return UIColor(
+            red: CGFloat((rgbValue & 0xFF0000) >> 16) / 255.0,
+            green: CGFloat((rgbValue & 0x00FF00) >> 8) / 255.0,
+            blue: CGFloat(rgbValue & 0x0000FF) / 255.0,
+            alpha: CGFloat(1.0)
+        )
+    }
 
 }
