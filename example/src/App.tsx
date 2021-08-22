@@ -1,22 +1,27 @@
 import * as React from 'react';
 
-import { StyleSheet, View, Text, Button } from 'react-native';
+import { StyleSheet, View, Button } from 'react-native';
 import ZendeskSdk from 'react-native-zendesk-sdk';
 
 export default function App() {
-  const [result, setResult] = React.useState<number | undefined>();
-
   React.useEffect(() => {
-    ZendeskSdk.multiply(3, 7).then(setResult);
+    ZendeskSdk.initialize({
+      appId: '',
+      clientId: '',
+      zendeskUrl: 'https://shobbak.zendesk.com',
+      user: {
+        userId: '1',
+        locale: 'ar',
+      },
+    }).then((res) => console.log(res));
   }, []);
 
   return (
     <View style={styles.container}>
-      <Text>Result: {result}</Text>
       <Button
         title={'Open Help Center'}
         onPress={() => {
-          // ZendeskSdk.showNativeHelpCenter();
+          ZendeskSdk.showNativeHelpCenter({});
         }}
       />
     </View>
