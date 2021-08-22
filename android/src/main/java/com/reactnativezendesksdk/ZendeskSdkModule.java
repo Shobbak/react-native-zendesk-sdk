@@ -70,8 +70,9 @@ public class ZendeskSdkModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void showNativeHelpCenter(ReadableMap options) {
-    Activity activity = getCurrentActivity();
-    HelpCenterActivity.builder().show(activity);
+      // @TODO: Needs more options
+      Activity activity = getCurrentActivity();
+      HelpCenterActivity.builder().show(activity);
   }
 
     private boolean registerDevice(String identifier){

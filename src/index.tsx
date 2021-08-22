@@ -31,7 +31,6 @@ type HelpCenterOptions = {
 };
 
 type ZendeskSdkType = {
-  multiply(a: number, b: number): Promise<number>;
   initialize(config: SDKConfig): Promise<string>;
   setAnonymous(name: string, email: string): Promise<string>;
   setIdentity(user: User): Promise<string>;
