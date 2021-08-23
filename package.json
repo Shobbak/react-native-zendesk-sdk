@@ -1,5 +1,5 @@
 {
-  "name": "@alshuwaikhat/react-native-zendesk-sdk",
+  "name": "@shobbak/react-native-zendesk-sdk",
   "version": "0.2.0",
   "description": "React Native ZndeskSDK Wrapper",
   "main": "lib/commonjs/index",
