@@ -16,12 +16,12 @@ import ZendeskSdk from "react-native-zendesk-sdk";
 // ...
 
 const result = await ZendeskSdk.initialize({
-        appId: '',
-        clientId: '',
-        zendeskUrl: 'https://shobbak.zendesk.com',
+        appId: 'APP_ID',
+        clientId: 'CLIENT_ID',
+        zendeskUrl: 'YOUR_ZENDESK_DOMAIN',
         user: {
-          userId: user.id,
-          locale: 'ar',
+          userId: 9876789,
+          locale: 'ar | en-us',
         },
       });
 ```
