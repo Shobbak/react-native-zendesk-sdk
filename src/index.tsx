@@ -16,14 +16,20 @@ type SDKConfig = {
   };
 };
 
-type CustomField = {
-  fieldId: number;
-  value: any;
-};
+// type Request = {
+//     title: string,
+//     body: string,
+//     tags: string[],
+//     customFields: CustomField[]
+// }
+// type CustomField = {
+//   fieldId: string;
+//   value: string;
+// };
 
 type HelpCenterOptions = {
   locale?: string;
-  groupIds?: number[];
+  groupIds?: string[];
   groupType?: 'category' | 'section';
   labels?: string[];
   articleId?: string;
@@ -35,12 +41,8 @@ type ZendeskSdkType = {
   setAnonymous(name: string, email: string): Promise<string>;
   setIdentity(user: User): Promise<string>;
   showNativeHelpCenter(options?: HelpCenterOptions): () => void;
-  createTicket(
-    title: string,
-    body: string,
-    tags: string[],
-    customFields: CustomField[]
-  ): () => void;
+  // @TODO
+  // createTicket(Request): () => void;
 };
 
 const { ZendeskSdk } = NativeModules;

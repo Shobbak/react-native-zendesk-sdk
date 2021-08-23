@@ -96,12 +96,12 @@ class ZendeskSdk: NSObject {
         
         let hcConfig = HelpCenterUiConfiguration()
         
-        if let filterBy = options?["groupIds"] as? [NSNumber],
+        if let filterBy = options?["groupIds"] as? [NSString],
            let filterByType = options?["groupType"] as? String {
             
             if( filterBy.count > 0 && !filterByType.isEmpty){
                 hcConfig.groupType = filterByType == "category" ? .category : .section
-                hcConfig.groupIds = filterBy
+                hcConfig.groupIds = convertStringArrayToNumber(stringArray: filterBy)
             }
         }
     
@@ -109,13 +109,13 @@ class ZendeskSdk: NSObject {
             hcConfig.labels = labels
         }
         
-//        if let ticketDisabled = options?["hideContactSupport"] as? Bool{
-//            hcConfig.hideContactSupport = ticketDisabled
-//        }
+        if let ticketDisabled = options?["hideContactSupport"] as? Bool{
+            hcConfig.showContactOptions = !ticketDisabled
+        }
         
-        CommonTheme.currentTheme.primaryColor = hexStringToUIColor(hex: "#10B981")
         
         DispatchQueue.main.async {
+            
             var zendeskHelpCenter = HelpCenterUi.buildHelpCenterOverviewUi(withConfigs: [hcConfig])
             
             if let articleId = options?["articleId"] as? String{
@@ -178,6 +178,18 @@ class ZendeskSdk: NSObject {
       let requestID = response.notification.request.content.userInfo["tid"]
     }
     
+    func convertStringArrayToNumber(stringArray: [NSString])->[NSNumber]{
+        let numberFormatter = NumberFormatter()
+        var returnArray:[NSNumber] = []
+
+        for i in 0..<stringArray.count
+        {
+            let convertedNumber = numberFormatter.number(from: stringArray[i] as String)
+            
+            returnArray.append(convertedNumber ?? 0)
+        }
+        return returnArray
+    }
     
     func hexStringToUIColor (hex:String) -> UIColor {
         var cString:String = hex.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
