@@ -1,5 +1,14 @@
 import { NativeModules } from 'react-native';
+type CustomField = {
+  fieldId: string;
+  value: any;
+};
 
+type TicketRequestOptions = {
+  ticketTitle?: string;
+  ticketTags?: string[];
+  ticketCustomFields?: CustomField[];
+};
 type User = {
   userToken?: string;
   email?: string;
@@ -28,6 +37,7 @@ type HelpCenterOptions = {
   labels?: string[];
   articleId?: string;
   hideContactSupport?: boolean;
+  ticketRequest?: TicketRequestOptions;
 };
 
 type ZendeskSdkType = {
@@ -35,6 +45,13 @@ type ZendeskSdkType = {
   setAnonymous(name: string, email: string): Promise<string>;
   setIdentity(user: User): Promise<string>;
   showNativeHelpCenter(options?: HelpCenterOptions): () => void;
+  showTicketList(options?: {
+    ticketRequest?: TicketRequestOptions;
+  }): () => void;
+  showTicket(ticketId: string): () => void;
+  showNewTicketRequest(options?: {
+    ticketRequest?: TicketRequestOptions;
+  }): () => void;
 };
 
 const { ZendeskSdk } = NativeModules;

@@ -103,6 +103,8 @@ class ZendeskSdk: NSObject {
 
         let hcConfig = HelpCenterUiConfiguration()
 
+        let articleUiConfig = ArticleUiConfiguration()
+        
         if let filterBy = options?["groupIds"] as? [NSString],
            let filterByType = options?["groupType"] as? String {
 
@@ -118,12 +120,22 @@ class ZendeskSdk: NSObject {
 
         if let ticketDisabled = options?["hideContactSupport"] as? Bool {
             hcConfig.showContactOptions = !ticketDisabled
+            articleUiConfig.showContactOptions = !ticketDisabled
         }
+        
+        var requestConfig = RequestUiConfiguration()
+        
+        if(options?["hideContactSupport"] as? Bool == false || options?["hideContactSupport"] == nil){
+            
+            if let ticketRequest = options?["ticketRequest"] as? NSDictionary{
 
-
+                setTicketCreationOptions(config: &requestConfig, ticketRequest: ticketRequest)
+            }
+        }
+        
         DispatchQueue.main.async {
 
-            var zendeskHelpCenter = HelpCenterUi.buildHelpCenterOverviewUi(withConfigs: [hcConfig])
+            var zendeskHelpCenter = HelpCenterUi.buildHelpCenterOverviewUi(withConfigs: [hcConfig, articleUiConfig, requestConfig])
 
             if let articleId = options?["articleId"] as? String {
                 zendeskHelpCenter = HelpCenterUi.buildHelpCenterArticleUi(withArticleId: articleId, andConfigs: [])
@@ -158,31 +170,107 @@ class ZendeskSdk: NSObject {
 
         ZDKRequestProvider().createRequest(request, withCallback: { (result, error) in
             if ((error) != nil) {
-                print("Error: \(error)")
+                print("Error: \(String(describing: error))")
             } else {
                 // Handle the success
-
-                print(result)
 
             }
         })
 
     }
-
-
-    // UTILITIES
-
-    func registerDevice(identifier: String, locale: String?) -> Void {
-
-        ZDKPushProvider(zendesk: Zendesk.instance!).register(deviceIdentifier: identifier, locale: locale ?? "en") { (pushResponse, error) in
-            print("Couldn't register device: \(identifier). Error: \(error)")
+    
+    
+    @objc(showTicketList:)
+    func showTicketList(options: NSDictionary? = nil){
+        
+        var config = RequestUiConfiguration()
+        
+        if let ticketRequest = options?["ticketRequest"] as? NSDictionary{
+            setTicketCreationOptions(config: &config, ticketRequest: ticketRequest)
+        }
+        
+        
+        DispatchQueue.main.async {
+            let viewController = RequestUi.buildRequestList(with: [config])
+            
+            let navigationController = UINavigationController.init(rootViewController: viewController)
+            
+            navigationController.modalPresentationStyle = .fullScreen
+            
+            UIApplication.shared.keyWindow?.rootViewController?.present(navigationController, animated: true, completion: nil)
+            
+        }
+        
+    }
+    
+    
+    @objc(showNewTicketRequest:)
+    func showNewTicketRequest(options: NSDictionary? = nil){
+        
+        var config = RequestUiConfiguration()
+        
+        if let ticketRequest = options?["ticketRequest"] as? NSDictionary{
+            setTicketCreationOptions(config: &config, ticketRequest: ticketRequest)
+        }
+        
+        DispatchQueue.main.async {
+            
+            let viewController = RequestUi.buildRequestUi(with: [config])
+            
+            let navigationController = UINavigationController.init(rootViewController: viewController)
+            
+            navigationController.modalPresentationStyle = .fullScreen
+            
+            UIApplication.shared.keyWindow?.rootViewController?.present(navigationController, animated: true, completion: nil)
+            
+        }
+    }
+    
+    @objc(showTicket:)
+    func showTicket(requestID: String) {
+        
+        DispatchQueue.main.async {
+            
+            let viewController = RequestUi.buildRequestUi(requestId: requestID)
+            
+            let navigationController = UINavigationController.init(rootViewController: viewController)
+            
+            navigationController.modalPresentationStyle = .fullScreen
+            
+            UIApplication.shared.keyWindow?.rootViewController?.present(navigationController, animated: true, completion: nil)
+            
         }
     }
 
 
-    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler:
-            @escaping () -> Void) {
-        let requestID = response.notification.request.content.userInfo["tid"]
+    // UTILITIES
+    
+    func setTicketCreationOptions(config: inout RequestUiConfiguration, ticketRequest: NSDictionary){
+        
+        if let ticketTitle = ticketRequest["ticketTitle"] as? String{
+            config.subject = ticketTitle
+        }
+        
+        if let ticketTags = ticketRequest["ticketTags"] as? [String]{
+            config.tags = ticketTags
+        }
+        
+        if let customFields = ticketRequest["ticketCustomFields"] as? [[String: Any]]{
+            if (customFields.count > 0) {
+                var ticketCustomFields = [CustomField]();
+                customFields.forEach { customField in
+                    ticketCustomFields.append(CustomField(fieldId:Int64(customField["fieldId"] as! String) ?? 0 , value: customField["value"]))
+                }
+                config.customFields = ticketCustomFields
+            }
+        }
+    }
+
+    func registerDevice(identifier: String, locale: String?) -> Void {
+
+        ZDKPushProvider(zendesk: Zendesk.instance!).register(deviceIdentifier: identifier, locale: locale ?? "en") { (pushResponse, error) in
+            print("Couldn't register device: \(identifier). Error: \(String(describing: error))")
+        }
     }
 
     func convertStringArrayToNumber(stringArray: [NSString]) -> [NSNumber] {

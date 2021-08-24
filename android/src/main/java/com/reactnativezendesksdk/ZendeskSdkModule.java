@@ -15,16 +15,19 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.module.annotations.ReactModule;
+import com.google.gson.JsonSerializer;
 import com.zendesk.service.ErrorResponse;
 import com.zendesk.service.ZendeskCallback;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import zendesk.configurations.Configuration;
 import zendesk.core.Identity;
 import zendesk.core.JwtIdentity;
 import zendesk.core.Zendesk;
@@ -35,6 +38,9 @@ import zendesk.support.RequestProvider;
 import zendesk.support.Support;
 import zendesk.support.guide.HelpCenterActivity;
 import zendesk.support.guide.HelpCenterConfiguration;
+import zendesk.support.request.RequestActivity;
+import zendesk.support.request.RequestConfiguration;
+import zendesk.support.requestlist.RequestListActivity;
 
 @ReactModule(name = ZendeskSdkModule.NAME)
 public class ZendeskSdkModule extends ReactContextBaseJavaModule {
@@ -77,10 +83,10 @@ public class ZendeskSdkModule extends ReactContextBaseJavaModule {
       }
 
       if (options.hasKey("device")) {
-         ReadableMap device = options.getMap("device");
-         String deviceId = device.getString("deviceId")
-         String locale = device.getString("locale");
-         registerDevice(deviceId);
+        ReadableMap device = options.getMap("device");
+        String deviceId = device.getString("deviceId");
+        String locale = device.getString("locale");
+        registerDevice(deviceId);
       }
 
       promise.resolve("Zendesk SDK Initiated");
@@ -118,6 +124,8 @@ public class ZendeskSdkModule extends ReactContextBaseJavaModule {
 
       HelpCenterConfiguration.Builder activityBuilder = new HelpCenterConfiguration.Builder();
 
+      RequestConfiguration.Builder requestActivityConfig = RequestActivity.builder();
+
       if (options.hasKey("groupType") && options.hasKey("groupIds")) {
         List<Long> filterGroup = options.getArray("groupIds")
           .toArrayList()
@@ -147,13 +155,57 @@ public class ZendeskSdkModule extends ReactContextBaseJavaModule {
         activityBuilder = activityBuilder.withContactUsButtonVisible(!options.getBoolean("hideContactSupport"));
       }
 
-      activityBuilder.show(activity);
+      if (options.hasKey("ticketRequest")) {
+        requestActivityConfig = setTicketCreationOptions(requestActivityConfig, options.getMap("ticketRequest"));
+      }
+
+      List<Configuration> configurations = Arrays.asList(requestActivityConfig.config());
+
+      activityBuilder.show(activity, configurations);
 
     } catch (Exception exception) {
 
       System.out.println("Error: " + exception.getMessage());
     }
 
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.N)
+  @ReactMethod
+  public void showTicketList(ReadableMap options) {
+    Activity activity = getCurrentActivity();
+    RequestConfiguration.Builder requestActivityConfig = RequestActivity.builder();
+
+    if (options.hasKey("ticketRequest")) {
+      requestActivityConfig = setTicketCreationOptions(requestActivityConfig, options.getMap("ticketRequest"));
+    }
+
+    List<Configuration> configurations = Arrays.asList(requestActivityConfig.config());
+    RequestListActivity.builder().show(activity, configurations);
+  }
+
+  @ReactMethod
+  public void showTicket(String ticketId) {
+
+    Activity activity = getCurrentActivity();
+
+    RequestActivity.builder().withRequestId(ticketId).show(activity);
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.N)
+  @ReactMethod
+  public void showNewTicketRequest(ReadableMap options) {
+    Activity activity = getCurrentActivity();
+
+    RequestConfiguration.Builder requestActivityConfig = RequestActivity.builder();
+
+    if (options.hasKey("ticketRequest")) {
+      requestActivityConfig = setTicketCreationOptions(requestActivityConfig, options.getMap("ticketRequest"));
+    }
+
+    List<Configuration> configurations = Arrays.asList(requestActivityConfig.config());
+
+    RequestActivity.builder().show(activity, configurations);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.N)
@@ -167,18 +219,6 @@ public class ZendeskSdkModule extends ReactContextBaseJavaModule {
 
     request.setTags((List<String>) tags);
 
-    // @TODO: Implement Custom Field
-//    if (customFields != null) {
-//      List<CustomField> parsedCustomFields = null;
-//      customFields
-//        .toArrayList()
-//        .stream()
-//        .map(fieldObject -> new CustomField(new Long(fieldObject.getString("fieldId")), fieldObject.getString("value")))
-//        .forEach(parsedCustomFields::add);
-//
-//      if (parsedCustomFields != null) request.setCustomFields(parsedCustomFields);
-//
-//    }
 
     RequestProvider provider = Support.INSTANCE.provider().requestProvider();
     provider.createRequest(request, new ZendeskCallback<Request>() {
@@ -194,6 +234,8 @@ public class ZendeskSdkModule extends ReactContextBaseJavaModule {
     });
 
   }
+
+
   private boolean registerDevice(String identifier) {
     final Boolean[] registrationResult = {false};
     Zendesk.INSTANCE.provider().pushRegistrationProvider().registerWithDeviceIdentifier(identifier, new ZendeskCallback<String>() {
@@ -207,6 +249,57 @@ public class ZendeskSdkModule extends ReactContextBaseJavaModule {
       }
     });
     return registrationResult[0];
+  }
+
+
+  /*
+   * Utility Functions
+   */
+
+  /**
+   *
+   * @param requestActivityConfig
+   * @param ticketRequest
+   * @return RequestConfiguration.Builder builder
+   */
+  @RequiresApi(api = Build.VERSION_CODES.N)
+  private RequestConfiguration.Builder setTicketCreationOptions(RequestConfiguration.Builder requestActivityConfig, ReadableMap ticketRequest) {
+
+    if (ticketRequest.hasKey("ticketTitle")) {
+      requestActivityConfig = requestActivityConfig.withRequestSubject(ticketRequest.getString("ticketTitle"));
+    }
+
+    if (ticketRequest.hasKey("ticketTags")) {
+      List<String> tags = ticketRequest.getArray("ticketTags").toArrayList().stream().map(tag -> tag.toString()).collect(Collectors.toList());
+      requestActivityConfig = requestActivityConfig.withTags(tags);
+    }
+
+    if (ticketRequest.hasKey("ticketCustomFields")) {
+      List<CustomField> customFields = getCustomFieldsListFromArray(ticketRequest.getArray("ticketCustomFields"));
+      if (customFields != null) {
+        System.out.println(customFields);
+        requestActivityConfig = requestActivityConfig.withCustomFields(customFields);
+      }
+
+    }
+    return requestActivityConfig;
+  }
+
+  /**
+   *
+   * @param ticketCustomFields
+   * @return List<CustomField> customFieldsList
+   */
+  @RequiresApi(api = Build.VERSION_CODES.N)
+  private List<CustomField> getCustomFieldsListFromArray(ReadableArray ticketCustomFields) {
+
+    List<CustomField> parsedCustomFields = ticketCustomFields
+      .toArrayList()
+      .stream()
+      .map(object -> new CustomFieldObject((HashMap<String, Object>) object).toZendeskCustomField())
+      .collect(Collectors.toList());
+
+    return parsedCustomFields;
   }
 
 }
