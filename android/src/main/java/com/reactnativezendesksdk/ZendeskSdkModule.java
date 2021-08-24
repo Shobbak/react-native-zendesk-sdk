@@ -71,12 +71,18 @@ public class ZendeskSdkModule extends ReactContextBaseJavaModule {
 
       if (options.hasKey("user")) {
         ReadableMap user = options.getMap("user");
-        String userId = user.getString("userId");
-        String locale = user.getString("locale");
-        Identity identity = new JwtIdentity(userId);
+        String userToken = user.getString("userToken");
+        Identity identity = new JwtIdentity(userToken);
         Zendesk.INSTANCE.setIdentity(identity);
-        registerDevice(userId);
       }
+
+      if (options.hasKey("device")) {
+         ReadableMap device = options.getMap("device");
+         String deviceId = device.getString("deviceId")
+         String locale = device.getString("locale");
+         registerDevice(deviceId);
+      }
+
       promise.resolve("Zendesk SDK Initiated");
 
     } catch (Exception exception) {

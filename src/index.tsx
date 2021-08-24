@@ -1,31 +1,25 @@
 import { NativeModules } from 'react-native';
 
 type User = {
-  userId?: string;
+  userToken?: string;
   email?: string;
   name?: string;
 };
 
-type SDKConfig = {
+type Device = {
+  deviceId: string;
+  locale?: string;
+};
+
+export type SDKConfig = {
   appId: string;
   clientId: string;
   zendeskUrl: string;
   user?: {
-    userId: string;
-    locale?: string;
+    userToken: string;
   };
+  device?: Device;
 };
-
-// type Request = {
-//     title: string,
-//     body: string,
-//     tags: string[],
-//     customFields: CustomField[]
-// }
-// type CustomField = {
-//   fieldId: string;
-//   value: string;
-// };
 
 type HelpCenterOptions = {
   locale?: string;
@@ -41,8 +35,6 @@ type ZendeskSdkType = {
   setAnonymous(name: string, email: string): Promise<string>;
   setIdentity(user: User): Promise<string>;
   showNativeHelpCenter(options?: HelpCenterOptions): () => void;
-  // @TODO
-  // createTicket(Request): () => void;
 };
 
 const { ZendeskSdk } = NativeModules;
