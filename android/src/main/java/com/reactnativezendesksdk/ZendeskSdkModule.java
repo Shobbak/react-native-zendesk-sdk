@@ -36,6 +36,7 @@ import zendesk.support.CustomField;
 import zendesk.support.Request;
 import zendesk.support.RequestProvider;
 import zendesk.support.Support;
+import zendesk.support.guide.ArticleConfiguration;
 import zendesk.support.guide.HelpCenterActivity;
 import zendesk.support.guide.HelpCenterConfiguration;
 import zendesk.support.request.RequestActivity;
@@ -126,6 +127,8 @@ public class ZendeskSdkModule extends ReactContextBaseJavaModule {
 
       RequestConfiguration.Builder requestActivityConfig = RequestActivity.builder();
 
+      ArticleConfiguration.Builder articleBuilder = new ArticleConfiguration.Builder();
+
       if (options.hasKey("groupType") && options.hasKey("groupIds")) {
         List<Long> filterGroup = options.getArray("groupIds")
           .toArrayList()
@@ -152,14 +155,18 @@ public class ZendeskSdkModule extends ReactContextBaseJavaModule {
       }
 
       if (options.hasKey("hideContactSupport")) {
+
         activityBuilder = activityBuilder.withContactUsButtonVisible(!options.getBoolean("hideContactSupport"));
+
+        articleBuilder = articleBuilder.withContactUsButtonVisible(!options.getBoolean("hideContactSupport"));
       }
 
       if (options.hasKey("ticketRequest")) {
         requestActivityConfig = setTicketCreationOptions(requestActivityConfig, options.getMap("ticketRequest"));
+
       }
 
-      List<Configuration> configurations = Arrays.asList(requestActivityConfig.config());
+      List<Configuration> configurations = Arrays.asList(requestActivityConfig.config(), articleBuilder.config());
 
       activityBuilder.show(activity, configurations);
 
