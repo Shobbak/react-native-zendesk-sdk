@@ -8,6 +8,10 @@ import CommonUISDK
 @objc(ZendeskSdk)
 class ZendeskSdk: NSObject {
 
+    @objc static func requiresMainQueueSetup() -> Bool {
+        return false
+    }
+
     enum ZendeskSdkError: Error {
         case UnableToSetIdentity(String)
     }
